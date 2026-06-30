@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -54,6 +55,23 @@ app.use('/api/', apiLimiter);
 
 // Serve uploads folder statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Ensure database connection middleware for serverless environments (Vercel)
+app.use(async (req, res, next) => {
+  if (req.url.startsWith('/api')) {
+    if (mongoose.connection.readyState >= 1) {
+      return next();
+    }
+    try {
+      await connectDB();
+      next();
+    } catch (err) {
+      return res.status(500).json({ success: false, message: 'Database connection failed: ' + err.message });
+    }
+  } else {
+    next();
+  }
+});
 
 // Register API Routes
 app.use('/api/auth', authRoutes);
@@ -187,6 +205,8 @@ const PORT = process.env.PORT || 3000;
 if (process.env.MONGODB_URI) {
   connectDB().then(() => {
     seedDatabase();
+  }).catch(err => {
+    console.error('Database connection/seeding failed:', err.message);
   });
 } else {
   console.log('WARNING: MONGODB_URI not found. Skip DB connection for local builds or vercel building phases.');
