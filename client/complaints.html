@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grievances Portal - Grievance Hub</title>
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+
+  <div class="dashboard-wrapper">
+    <!-- Sidebar Container -->
+    <aside id="sidebar-container"></aside>
+
+    <!-- Main Workspace -->
+    <main class="dashboard-main">
+      <!-- Top header bar -->
+      <header class="dashboard-header">
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn btn-outline-premium border-0 p-2" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+          <h4 class="fw-bold mb-0">Grievance Portal</h4>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <button id="theme-toggle" class="btn btn-outline-premium p-2 border-0"></button>
+          <span class="badge bg-primary px-3 py-2" id="role-badge">CITIZEN</span>
+        </div>
+      </header>
+
+      <!-- View Content Container -->
+      <div class="dashboard-content">
+        
+        <!-- Toggle button to Raise Complaint (Citizen only) -->
+        <div id="citizen-actions-row" class="d-flex justify-content-between align-items-center mb-4 d-none">
+          <h5 class="fw-bold mb-0">Explore Registered Grievances</h5>
+          <button onclick="toggleRaiseForm()" class="btn btn-premium" id="toggle-raise-btn">
+            <i class="fas fa-plus me-2"></i>File New Grievance
+          </button>
+        </div>
+
+        <!-- Raise Complaint Card (Citizen Form) -->
+        <div id="raise-complaint-section" class="glass-panel p-4 mb-4 d-none">
+          <h5 class="fw-bold mb-3"><i class="fas fa-edit me-2 text-primary"></i>Register Public Grievance</h5>
+          <form id="raise-form" enctype="multipart/form-data">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">Department Selection</label>
+                <select id="raise-department" class="form-select form-control-premium w-100" required>
+                  <option value="auto">Auto-Categorize using AI (Recommended)</option>
+                  <!-- Populated dynamically -->
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">Priority Setting</label>
+                <select id="raise-priority" class="form-select form-control-premium w-100">
+                  <option value="medium">Medium (Standard Redressal)</option>
+                  <option value="low">Low (General Inquiry)</option>
+                  <option value="high">High (Immediate Action)</option>
+                  <option value="critical">Critical (Public Hazard)</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">Sub-Category</label>
+                <input type="text" id="raise-sub-dept" class="form-control form-control-premium w-100" placeholder="e.g. Drainage Leak, Damaged Pothole">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">Location Address</label>
+                <input type="text" id="raise-location" class="form-control form-control-premium w-100" required placeholder="e.g. Sector 5, Main Street, Metro Area">
+              </div>
+              <div class="col-12">
+                <label class="form-label small fw-bold">Description of Concern</label>
+                <textarea id="raise-description" class="form-control form-control-premium w-100" rows="4" required placeholder="Describe what needs repair or investigation..."></textarea>
+              </div>
+              <div class="col-12">
+                <label class="form-label small fw-bold">Attachments (Images/PDFs)</label>
+                <input type="file" id="raise-files" class="form-control form-control-premium w-100" multiple accept="image/*,.pdf">
+                <div class="form-text small">Upload up to 5 pictures or PDF verification documents.</div>
+              </div>
+              <div class="col-12 text-end">
+                <button type="button" onclick="toggleRaiseForm()" class="btn btn-outline-premium me-2">Cancel</button>
+                <button type="submit" class="btn btn-premium">Submit Grievance</button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Filter Header Grid -->
+        <div class="glass-panel p-3 mb-4">
+          <div class="row g-3 align-items-center">
+            <div class="col-md-4">
+              <input type="text" id="filter-search" class="form-control form-control-premium w-100" placeholder="Search tracking numbers, locations...">
+            </div>
+            <div class="col-md-3">
+              <select id="filter-status" class="form-select form-control-premium w-100">
+                <option value="">All Statuses</option>
+                <option value="Submitted">Submitted</option>
+                <option value="Verified">Verified</option>
+                <option value="Assigned">Assigned</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Resolved">Resolved</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Escalated">Escalated</option>
+                <option value="Closed">Closed</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <select id="filter-priority" class="form-select form-control-premium w-100">
+                <option value="">All Priorities</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <button onclick="loadComplaints()" class="btn btn-premium w-100">Filter</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Complaints Listing Table -->
+        <div class="premium-table-container">
+          <table class="premium-table">
+            <thead>
+              <tr>
+                <th>Tracking ID</th>
+                <th>Citizen Details</th>
+                <th>Department</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Submission Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="complaints-tbody">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Complaint Detail Modal -->
+  <div class="modal fade" id="complaintDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content glass-panel p-4" style="border: 1px solid var(--border-color);">
+        <div class="modal-header border-0 p-0 mb-3 justify-content-between">
+          <h5 class="modal-title fw-bold" id="detail-title">Grievance Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-0">
+          <div class="row g-4">
+            <!-- Left Info Panel -->
+            <div class="col-md-7">
+              <div class="p-3 border rounded mb-3">
+                <h6 class="fw-bold mb-2">Metadata Details</h6>
+                <div class="small text-secondary mb-1"><strong>Location:</strong> <span id="detail-location"></span></div>
+                <div class="small text-secondary mb-1"><strong>Sub-Category:</strong> <span id="detail-category"></span></div>
+                <div class="small text-secondary mb-3"><strong>Priority:</strong> <span id="detail-priority"></span></div>
+                
+                <h6 class="fw-bold mb-2">Description</h6>
+                <p class="small text-primary mb-3" id="detail-description"></p>
+                
+                <h6 class="fw-bold mb-2">Attachments</h6>
+                <div id="detail-attachments" class="d-flex flex-wrap gap-2 mb-3"></div>
+
+                <!-- Assignment Control block (Manager/Admin Only) -->
+                <div id="manager-assignment-block" class="mt-4 border-top pt-3 d-none">
+                  <h6 class="fw-bold mb-2">Assign Field Officer</h6>
+                  <div class="d-flex gap-2">
+                    <select id="employee-assign-select" class="form-select form-control-premium"></select>
+                    <button onclick="assignOfficerSubmit()" class="btn btn-premium btn-sm">Assign</button>
+                  </div>
+                </div>
+
+                <!-- Employee Action Controls (Employee/Manager/Admin Only) -->
+                <div id="employee-actions-block" class="mt-4 border-top pt-3 d-none">
+                  <h6 class="fw-bold mb-2">Update Resolution Status</h6>
+                  <div class="d-flex gap-2 mb-3">
+                    <select id="status-update-select" class="form-select form-control-premium">
+                      <option value="In Progress">In Progress</option>
+                      <option value="Escalated">Escalated</option>
+                      <option value="Rejected">Rejected</option>
+                    </select>
+                    <input type="text" id="status-remarks" class="form-control form-control-premium" placeholder="Enter status remarks...">
+                    <button onclick="updateStatusSubmit()" class="btn btn-premium btn-sm">Update</button>
+                  </div>
+                  
+                  <h6 class="fw-bold mb-2">Resolve Grievance (Close Case)</h6>
+                  <form id="resolve-form" enctype="multipart/form-data" class="row g-2">
+                    <div class="col-8">
+                      <input type="text" id="resolve-remarks" class="form-control form-control-premium" required placeholder="Describe work done...">
+                    </div>
+                    <div class="col-4">
+                      <input type="file" id="resolve-file" class="form-control form-control-premium" accept="image/*,.pdf">
+                    </div>
+                    <div class="col-12 text-end">
+                      <button type="submit" class="btn btn-success btn-sm w-100">Submit Resolution Report</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+
+              <!-- Comment Section -->
+              <div class="p-3 border rounded">
+                <h6 class="fw-bold mb-3">Community Comments & Updates</h6>
+                <div id="comments-list" class="mb-3" style="max-height: 200px; overflow-y: auto;"></div>
+                <div class="d-flex gap-2">
+                  <input type="text" id="new-comment" class="form-control form-control-premium" placeholder="Write a comment...">
+                  <button onclick="submitComment()" class="btn btn-premium btn-sm">Post</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Info Panel -->
+            <div class="col-md-5">
+              <div class="p-3 border rounded text-center mb-3">
+                <h6 class="fw-bold mb-2">Tracking QR Code</h6>
+                <div id="detail-qr-container"></div>
+                <div class="mt-3">
+                  <a href="" id="pdf-download-link" class="btn btn-outline-premium btn-sm w-100">
+                    <i class="fas fa-file-pdf me-2"></i>Download Receipt
+                  </a>
+                </div>
+              </div>
+
+              <div class="p-3 border rounded">
+                <h6 class="fw-bold mb-3">Grievance Milestones</h6>
+                <div id="timeline-list"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/api.js"></script>
+  
+  <script>
+    let activeComplaintId = null;
+    let detailModal = null;
+
+    // Toggle sidebar collapse
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+    }
+
+    // Toggle Citizen Form
+    function toggleRaiseForm() {
+      const form = document.getElementById('raise-complaint-section');
+      form.classList.toggle('d-none');
+      const isVisible = !form.classList.contains('d-none');
+      document.getElementById('toggle-raise-btn').innerHTML = isVisible 
+        ? '<i class="fas fa-times me-2"></i>Close Form' 
+        : '<i class="fas fa-plus me-2"></i>File New Grievance';
+    }
+
+    // Load departments
+    async function loadDepartments() {
+      try {
+        const res = await apiRequest('/departments');
+        const data = await res.json();
+        if (data.success) {
+          const select = document.getElementById('raise-department');
+          if (select) {
+            data.data.forEach(d => {
+              const opt = document.createElement('option');
+              opt.value = d._id;
+              opt.textContent = d.name;
+              select.appendChild(opt);
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Failed loading departments:', err);
+      }
+    }
+
+    // Load employees (For Manager allocation)
+    async function loadEmployees() {
+      try {
+        const res = await apiRequest('/users/employees');
+        const data = await res.json();
+        if (data.success) {
+          const select = document.getElementById('employee-assign-select');
+          if (select) {
+            select.innerHTML = '<option value="">Select Employee...</option>';
+            data.data.forEach(e => {
+              const opt = document.createElement('option');
+              opt.value = e._id;
+              opt.textContent = e.name;
+              select.appendChild(opt);
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load employees:', err);
+      }
+    }
+
+    // Load complaints based on filters
+    async function loadComplaints() {
+      const search = document.getElementById('filter-search').value;
+      const status = document.getElementById('filter-status').value;
+      const priority = document.getElementById('filter-priority').value;
+
+      try {
+        const res = await apiRequest(`/complaints?search=${encodeURIComponent(search)}&status=${status}&priority=${priority}`);
+        const data = await res.json();
+        
+        if (data.success) {
+          renderComplaints(data.data);
+        }
+      } catch (err) {
+        showToast('Error loading grievances.', 'error');
+      }
+    }
+
+    function renderComplaints(list) {
+      const tbody = document.getElementById('complaints-tbody');
+      tbody.innerHTML = '';
+
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-secondary py-4">No complaints matching current search.</td></tr>';
+        return;
+      }
+
+      list.forEach(c => {
+        const row = document.createElement('tr');
+        const formattedDate = new Date(c.createdAt).toLocaleDateString();
+        
+        row.innerHTML = `
+          <td><strong class="text-primary">${c.complaintNumber}</strong></td>
+          <td>
+            <div class="fw-bold">${c.citizen?.name || 'N/A'}</div>
+            <div class="small text-secondary">${c.citizen?.email || 'N/A'}</div>
+          </td>
+          <td>${c.department?.name || 'N/A'}</td>
+          <td><span class="badge bg-secondary">${c.priority.toUpperCase()}</span></td>
+          <td><span class="badge-status status-${c.status.toLowerCase().replace(' ', '-')}">${c.status}</span></td>
+          <td>${formattedDate}</td>
+          <td>
+            <button onclick="viewComplaint('${c._id}')" class="btn btn-outline-premium btn-sm py-1 px-2.5">
+              <i class="fas fa-eye me-1"></i>View
+            </button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    // View specific complaint detail
+    async function viewComplaint(id) {
+      activeComplaintId = id;
+      try {
+        const res = await apiRequest(`/complaints/${id}`);
+        const data = await res.json();
+
+        if (data.success) {
+          const complaint = data.data;
+          
+          document.getElementById('detail-title').textContent = `Grievance: ${complaint.complaintNumber}`;
+          document.getElementById('detail-location').textContent = complaint.location;
+          document.getElementById('detail-category').textContent = complaint.category || 'General';
+          document.getElementById('detail-priority').textContent = complaint.priority.toUpperCase();
+          document.getElementById('detail-description').textContent = complaint.description;
+
+          // QR Code rendering
+          const qrBox = document.getElementById('detail-qr-container');
+          if (complaint.qrCode) {
+            qrBox.innerHTML = `<img src="${complaint.qrCode}" width="160" height="160" alt="Tracking QR Code">`;
+          } else {
+            qrBox.innerHTML = `<div class="small text-secondary">QR Unavailable</div>`;
+          }
+
+          // PDF link
+          document.getElementById('pdf-download-link').href = `/api/complaints/${id}/download`;
+
+          // Attachments
+          const attContainer = document.getElementById('detail-attachments');
+          attContainer.innerHTML = '';
+          if (complaint.attachments.length === 0) {
+            attContainer.innerHTML = '<span class="small text-secondary">No attachments loaded.</span>';
+          } else {
+            complaint.attachments.forEach(file => {
+              const link = document.createElement('a');
+              link.href = file.path;
+              link.target = '_blank';
+              link.className = 'btn btn-sm btn-outline-premium';
+              link.innerHTML = `<i class="fas fa-file-image me-1"></i>${file.name.substring(0, 12)}...`;
+              attContainer.appendChild(link);
+            });
+          }
+
+          // Comments
+          const commentBox = document.getElementById('comments-list');
+          commentBox.innerHTML = '';
+          complaint.comments.forEach(com => {
+            const row = document.createElement('div');
+            row.className = 'mb-2 p-2 border-bottom';
+            row.innerHTML = `
+              <div class="d-flex justify-content-between small">
+                <strong class="text-primary">${com.author?.name} (${com.author?.role})</strong>
+                <span class="text-secondary">${new Date(com.timestamp).toLocaleDateString()}</span>
+              </div>
+              <div class="small mt-1">${com.text}</div>
+            `;
+            commentBox.appendChild(row);
+          });
+
+          // Milestones/Timeline
+          const timelineBox = document.getElementById('timeline-list');
+          timelineBox.innerHTML = '';
+          complaint.timeline.forEach(step => {
+            const track = document.createElement('div');
+            track.className = 'timeline-track';
+            track.innerHTML = `
+              <div class="timeline-point"></div>
+              <div class="timeline-card">
+                <div class="d-flex justify-content-between small">
+                  <strong>${step.status}</strong>
+                  <span class="text-secondary">${new Date(step.timestamp).toLocaleDateString()}</span>
+                </div>
+                <div class="small text-secondary mt-1">${step.remarks || 'No remarks added.'}</div>
+              </div>
+            `;
+            timelineBox.appendChild(track);
+          });
+
+          // Show assignment panel to manager
+          const user = getUser();
+          if (user.role === 'manager' || user.role === 'admin') {
+            document.getElementById('manager-assignment-block').classList.remove('d-none');
+          } else {
+            document.getElementById('manager-assignment-block').classList.add('d-none');
+          }
+
+          // Show resolve actions panel to employee/manager/admin
+          if (user.role === 'employee' || user.role === 'manager' || user.role === 'admin') {
+            document.getElementById('employee-actions-block').classList.remove('d-none');
+          } else {
+            document.getElementById('employee-actions-block').classList.add('d-none');
+          }
+
+          detailModal.show();
+        }
+      } catch (err) {
+        showToast('Failed to fetch details.', 'error');
+      }
+    }
+
+    // Submit Citizen Grievance Form
+    const raiseForm = document.getElementById('raise-form');
+    if (raiseForm) {
+      raiseForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData();
+        formData.append('departmentId', document.getElementById('raise-department').value);
+        formData.append('priority', document.getElementById('raise-priority').value);
+        formData.append('subDepartment', document.getElementById('raise-sub-dept').value);
+        formData.append('location', document.getElementById('raise-location').value);
+        formData.append('description', document.getElementById('raise-description').value);
+
+        const files = document.getElementById('raise-files').files;
+        for (let i = 0; i < files.length; i++) {
+          formData.append('attachments', files[i]);
+        }
+
+        try {
+          const res = await apiRequest('/complaints', {
+            method: 'POST',
+            body: formData
+          });
+          const data = await res.json();
+          
+          if (data.success) {
+            showToast('Grievance logged successfully!', 'success');
+            raiseForm.reset();
+            toggleRaiseForm();
+            loadComplaints();
+          } else {
+            showToast(data.message || 'Logging grievance failed', 'error');
+          }
+        } catch (err) {
+          showToast('Failed registering complaint.', 'error');
+        }
+      });
+    }
+
+    // Submit Assignment to Employee (Manager action)
+    async function assignOfficerSubmit() {
+      const employeeId = document.getElementById('employee-assign-select').value;
+      if (!employeeId) {
+        showToast('Please select a field employee', 'error');
+        return;
+      }
+
+      try {
+        const res = await apiRequest(`/complaints/${activeComplaintId}/assign`, {
+          method: 'PUT',
+          body: { employeeId }
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Officer assigned successfully!', 'success');
+          detailModal.hide();
+          loadComplaints();
+        } else {
+          showToast(data.message || 'Assignment failed', 'error');
+        }
+      } catch (err) {
+        showToast('Assignment error occurred.', 'error');
+      }
+    }
+
+    // Update Status Action (Employee action)
+    async function updateStatusSubmit() {
+      const status = document.getElementById('status-update-select').value;
+      const remarks = document.getElementById('status-remarks').value;
+
+      try {
+        const res = await apiRequest(`/complaints/${activeComplaintId}/status`, {
+          method: 'PUT',
+          body: { status, remarks }
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Status updated successfully!', 'success');
+          detailModal.hide();
+          loadComplaints();
+        }
+      } catch (err) {
+        showToast('Status update failed.', 'error');
+      }
+    }
+
+    // Submit Resolution Report Form
+    const resolveForm = document.getElementById('resolve-form');
+    if (resolveForm) {
+      resolveForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const remarks = document.getElementById('resolve-remarks').value;
+        const fileInput = document.getElementById('resolve-file').files[0];
+        
+        const formData = new FormData();
+        formData.append('remarks', remarks);
+        if (fileInput) {
+          formData.append('attachment', fileInput);
+        }
+
+        try {
+          const res = await apiRequest(`/complaints/${activeComplaintId}/resolution`, {
+            method: 'POST',
+            body: formData
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast('Case resolved and report generated!', 'success');
+            resolveForm.reset();
+            detailModal.hide();
+            loadComplaints();
+          } else {
+            showToast(data.message, 'error');
+          }
+        } catch (err) {
+          showToast('Resolution submission error.', 'error');
+        }
+      });
+    }
+
+    // Post Comments Thread
+    async function submitComment() {
+      const text = document.getElementById('new-comment').value;
+      if (!text) return;
+
+      try {
+        const res = await apiRequest(`/complaints/${activeComplaintId}/comments`, {
+          method: 'POST',
+          body: { text }
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('new-comment').value = '';
+          viewComplaint(activeComplaintId); // Refresh modal view
+        }
+      } catch (err) {
+        showToast('Failed to post comment.', 'error');
+      }
+    }
+
+    // Initial setup
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAuth();
+      const user = getUser();
+      document.getElementById('role-badge').textContent = user.role.toUpperCase();
+      
+      if (user.role === 'citizen') {
+        document.getElementById('citizen-actions-row').classList.remove('d-none');
+        loadDepartments();
+        
+        // Handle trigger redirect from dashboard to raise form directly
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('action') === 'raise') {
+          toggleRaiseForm();
+        }
+      }
+      
+      if (user.role === 'manager') {
+        loadEmployees();
+      }
+
+      detailModal = new bootstrap.Modal(document.getElementById('complaintDetailModal'));
+      loadComplaints();
+    });
+  </script>
+</body>
+</html>

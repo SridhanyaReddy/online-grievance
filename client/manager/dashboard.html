@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manager Dashboard - Grievance Hub</title>
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+
+  <div class="dashboard-wrapper">
+    <aside id="sidebar-container"></aside>
+
+    <main class="dashboard-main">
+      <header class="dashboard-header">
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn btn-outline-premium border-0 p-2" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+          <h4 class="fw-bold mb-0">Department Operations</h4>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <button id="theme-toggle" class="btn btn-outline-premium p-2 border-0"></button>
+          <span class="badge bg-warning text-dark px-3 py-2" id="dept-label">ROADS MANAGER</span>
+        </div>
+      </header>
+
+      <div class="dashboard-content">
+        <!-- Top Metrics Cards -->
+        <div class="stats-grid">
+          <div class="metric-card glass-panel">
+            <div class="metric-info">
+              <h3 id="stat-total">0</h3>
+              <p>Total Claims</p>
+            </div>
+            <div class="metric-icon-box bg-info-glow"><i class="fas fa-folder-open"></i></div>
+          </div>
+          <div class="metric-card glass-panel">
+            <div class="metric-info">
+              <h3 id="stat-pending">0</h3>
+              <p>Pending Actions</p>
+            </div>
+            <div class="metric-icon-box bg-warning-glow"><i class="fas fa-clock"></i></div>
+          </div>
+          <div class="metric-card glass-panel">
+            <div class="metric-info">
+              <h3 id="stat-resolved">0</h3>
+              <p>Resolved Cases</p>
+            </div>
+            <div class="metric-icon-box bg-success-glow"><i class="fas fa-check-double"></i></div>
+          </div>
+          <div class="metric-card glass-panel">
+            <div class="metric-info">
+              <h3 id="stat-escalated">0</h3>
+              <p>Escalated Cases</p>
+            </div>
+            <div class="metric-icon-box bg-danger-glow"><i class="fas fa-exclamation-triangle"></i></div>
+          </div>
+        </div>
+
+        <!-- Export & Report generation panel -->
+        <div class="glass-panel p-4 mb-4">
+          <h5 class="fw-bold mb-2">Operational Analytics Reports</h5>
+          <p class="text-secondary small mb-3">Download generated executive reports for departmental meetings.</p>
+          <div class="d-flex gap-2">
+            <a href="/api/reports/export/pdf" class="btn btn-premium">
+              <i class="fas fa-file-pdf me-2"></i>Download PDF Report
+            </a>
+            <a href="/api/reports/export/excel" class="btn btn-outline-premium">
+              <i class="fas fa-file-excel me-2 text-success"></i>Download Excel Sheet
+            </a>
+          </div>
+        </div>
+
+        <!-- Split Grid: Action Required & Employee Directory -->
+        <div class="row g-4">
+          <!-- Claims requiring assignment -->
+          <div class="col-lg-8">
+            <div class="glass-panel p-4">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">Unassigned Grievances</h5>
+                <a href="/complaints.html" class="btn btn-sm btn-outline-premium">Manage All</a>
+              </div>
+              <div class="table-responsive">
+                <table class="premium-table">
+                  <thead>
+                    <tr>
+                      <th>Grievance ID</th>
+                      <th>Category</th>
+                      <th>Location</th>
+                      <th>Priority</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="unassigned-tbody">
+                    <!-- Populated dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Employee Listing -->
+          <div class="col-lg-4">
+            <div class="glass-panel p-4 h-100">
+              <h5 class="fw-bold mb-3">Department Field Staff</h5>
+              <div class="list-group d-flex flex-column gap-2" id="employees-container">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/api.js"></script>
+  
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+    }
+
+    async function loadDashboard() {
+      try {
+        const res = await apiRequest('/reports/dashboard-stats');
+        const data = await res.json();
+        
+        if (data.success) {
+          document.getElementById('stat-total').textContent = data.data.complaints.total;
+          document.getElementById('stat-pending').textContent = data.data.complaints.pending;
+          document.getElementById('stat-resolved').textContent = data.data.complaints.resolved;
+          document.getElementById('stat-escalated').textContent = data.data.complaints.escalated;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function loadUnassignedCases() {
+      try {
+        const res = await apiRequest('/complaints?status=Submitted');
+        const data = await res.json();
+        if (data.success) {
+          const tbody = document.getElementById('unassigned-tbody');
+          tbody.innerHTML = '';
+          
+          const filtered = data.data.filter(c => !c.assignedEmployee);
+          
+          if (filtered.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-secondary py-3">No unassigned cases registered.</td></tr>';
+            return;
+          }
+
+          filtered.forEach(c => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td><strong class="text-primary">${c.complaintNumber}</strong></td>
+              <td>${c.category}</td>
+              <td>${c.location}</td>
+              <td><span class="badge bg-secondary">${c.priority.toUpperCase()}</span></td>
+              <td>
+                <a href="/complaints.html" class="btn btn-premium btn-sm py-1">Assign</a>
+              </td>
+            `;
+            tbody.appendChild(row);
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function loadDeptEmployees() {
+      try {
+        const res = await apiRequest('/users/employees');
+        const data = await res.json();
+        if (data.success) {
+          const container = document.getElementById('employees-container');
+          container.innerHTML = '';
+
+          if (data.data.length === 0) {
+            container.innerHTML = '<p class="small text-secondary py-3 text-center">No field employees registered under this department.</p>';
+            return;
+          }
+
+          data.data.forEach(e => {
+            const div = document.createElement('div');
+            div.className = 'list-group-item glass-card py-2 px-3 d-flex align-items-center gap-3';
+            div.innerHTML = `
+              <img src="${e.profilePic || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80'}" 
+                   class="rounded-circle" width="36" height="36" style="object-fit:cover;">
+              <div>
+                <div class="fw-bold small">${e.name}</div>
+                <div class="small text-secondary" style="font-size:0.7rem;">${e.email}</div>
+              </div>
+            `;
+            container.appendChild(div);
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAuth(['manager']);
+      const user = getUser();
+      document.getElementById('dept-label').textContent = `${user.name.toUpperCase()} WORKSPACE`;
+      
+      loadDashboard();
+      loadUnassignedCases();
+      loadDeptEmployees();
+    });
+  </script>
+</body>
+</html>

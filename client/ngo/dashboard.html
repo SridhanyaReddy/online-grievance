@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NGO Dashboard - Grievance Hub</title>
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+
+  <div class="dashboard-wrapper">
+    <aside id="sidebar-container"></aside>
+
+    <main class="dashboard-main">
+      <header class="dashboard-header">
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn btn-outline-premium border-0 p-2" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+          <h4 class="fw-bold mb-0">NGO Workspace</h4>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <button id="theme-toggle" class="btn btn-outline-premium p-2 border-0"></button>
+          <span class="badge bg-success px-3 py-2">NGO PARTNER</span>
+        </div>
+      </header>
+
+      <div class="dashboard-content">
+        <!-- Quick Onboarding Hero Card -->
+        <div class="glass-panel p-4 p-md-5 mb-4 text-center" 
+             style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(37, 99, 235, 0.05) 100%);">
+          <h3 class="fw-extrabold mb-2">Build Community Consensus</h3>
+          <p class="text-secondary mb-4">Start public awareness campaigns, launch petitions, or interact in town hall forum channels.</p>
+          <div class="d-flex justify-content-center gap-3">
+            <a href="/petition.html" class="btn btn-premium btn-lg">
+              <i class="fas fa-plus me-2"></i>Launch Petition
+            </a>
+            <a href="/groups.html" class="btn btn-outline-premium btn-lg">
+              <i class="fas fa-users me-2"></i>Forum Groups
+            </a>
+          </div>
+        </div>
+
+        <div class="row g-4">
+          <!-- List of my petitions -->
+          <div class="col-lg-8">
+            <div class="glass-panel p-4 h-100">
+              <h5 class="fw-bold mb-3">Our Initiated Petitions</h5>
+              <div class="table-responsive">
+                <table class="premium-table">
+                  <thead>
+                    <tr>
+                      <th>Title</th>
+                      <th>Votes</th>
+                      <th>Target</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ngo-petitions-tbody">
+                    <!-- Populated dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- NGO stats box -->
+          <div class="col-lg-4">
+            <div class="glass-panel p-4 h-100">
+              <h5 class="fw-bold mb-3">Community Dashboard</h5>
+              
+              <div class="p-3 border rounded mb-3 bg-secondary-theme">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div>
+                    <h4 class="fw-extrabold mb-0" id="ngo-pet-count">0</h4>
+                    <span class="small text-secondary">Initiated Petitions</span>
+                  </div>
+                  <i class="fas fa-file-signature text-primary fa-2x"></i>
+                </div>
+              </div>
+
+              <div class="p-3 border rounded bg-secondary-theme">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div>
+                    <h4 class="fw-extrabold mb-0" id="ngo-vote-count">0</h4>
+                    <span class="small text-secondary">Total Signatures Collected</span>
+                  </div>
+                  <i class="fas fa-heart text-danger fa-2x"></i>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/api.js"></script>
+  
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+    }
+
+    async function loadNGOPetitions() {
+      try {
+        const res = await apiRequest('/petitions');
+        const data = await res.json();
+        if (data.success) {
+          const user = getUser();
+          const filtered = data.data.filter(p => p.creator?._id === user.id || p.creator === user.id);
+          
+          const tbody = document.getElementById('ngo-petitions-tbody');
+          tbody.innerHTML = '';
+
+          document.getElementById('ngo-pet-count').textContent = filtered.length;
+          const totalVotes = filtered.reduce((acc, p) => acc + p.votes.length, 0);
+          document.getElementById('ngo-vote-count').textContent = totalVotes;
+
+          if (filtered.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-secondary py-3">No petitions launched by your organization.</td></tr>';
+            return;
+          }
+
+          filtered.forEach(p => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td><strong>${p.title}</strong></td>
+              <td>${p.votes.length}</td>
+              <td>${p.targetVotes}</td>
+              <td><span class="badge bg-secondary">${p.status}</span></td>
+              <td>
+                <a href="/petition.html" class="btn btn-outline-premium btn-sm py-1">View Feed</a>
+              </td>
+            `;
+            tbody.appendChild(row);
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAuth(['ngo']);
+      loadNGOPetitions();
+    });
+  </script>
+</body>
+</html>

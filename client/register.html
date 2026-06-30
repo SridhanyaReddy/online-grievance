@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - Grievance Portal</title>
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  
+  <style>
+    .auth-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% 50%, rgba(37, 99, 235, 0.05) 0%, rgba(0,0,0,0) 80%);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="auth-container p-3 position-relative">
+    <a href="index.html" class="btn btn-outline-premium btn-sm position-absolute top-0 start-0 m-4 d-flex align-items-center gap-2">
+      <i class="fas fa-arrow-left"></i> Back to Home
+    </a>
+    <div class="glass-panel p-4 p-md-5 w-100" style="max-width: 480px;">
+      <div class="text-center mb-4">
+        <a href="index.html" class="d-flex justify-content-center align-items-center gap-2 mb-3">
+          <i class="fas fa-shield-alt fa-2x"></i>
+          <span class="h3 fw-extrabold mb-0">Grievance Hub</span>
+        </a>
+        <h4 class="fw-bold">Create Account</h4>
+        <p class="text-secondary small">Register as a Citizen or NGO to submit claims</p>
+      </div>
+
+      <!-- Registration Form Block -->
+      <div id="register-form-block">
+        <form id="register-form">
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Account Type</label>
+            <select id="role-select" class="form-select form-control-premium w-100" onchange="toggleNGOFields()">
+              <option value="citizen">Citizen (General Public)</option>
+              <option value="ngo">NGO (Non-Governmental Org)</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Full Name</label>
+            <input type="text" id="reg-name" class="form-control form-control-premium w-100" required placeholder="John Doe">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Email Address</label>
+            <input type="email" id="reg-email" class="form-control form-control-premium w-100" required placeholder="john@example.com">
+          </div>
+
+          <!-- NGO registration conditional fields -->
+          <div id="ngo-details-block" class="mb-3 d-none">
+            <label class="form-label small fw-bold">NGO Registration Number</label>
+            <input type="text" id="reg-ngo-no" class="form-control form-control-premium w-100" placeholder="e.g. NGO-12345-US">
+            <div class="form-text small">NGO accounts require manual verification by administrators before active sign in.</div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label small fw-bold">Password</label>
+            <input type="password" id="reg-password" class="form-control form-control-premium w-100" required placeholder="Create secure password">
+          </div>
+
+          <button type="submit" class="btn btn-premium w-100 py-2.5 mb-3">
+            <i class="fas fa-user-plus me-2"></i>Sign Up
+          </button>
+        </form>
+      </div>
+
+      <!-- Verification Code Form Block (Shown dynamically after register) -->
+      <div id="verification-form-block" class="d-none">
+        <p class="text-center text-secondary small mb-4">We have sent a 6-digit confirmation code to your email. Enter it below to activate your account.</p>
+        <form id="verify-email-form">
+          <div class="mb-4">
+            <label class="form-label small fw-bold">Verification Code</label>
+            <input type="text" id="verification-otp" class="form-control form-control-premium w-100 text-center fs-4 letter-spacing-lg" required placeholder="123456" maxlength="6">
+          </div>
+          <button type="submit" class="btn btn-premium w-100 py-2.5 mb-3">
+            <i class="fas fa-check-circle me-2"></i>Activate Profile
+          </button>
+        </form>
+      </div>
+
+      <div class="text-center">
+        <p class="small text-secondary mb-0">Already registered? <a href="/login.html" class="fw-bold">Sign in here</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+</body>
+</html>

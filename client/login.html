@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Grievance Portal</title>
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  
+  <style>
+    .auth-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% 50%, rgba(37, 99, 235, 0.05) 0%, rgba(0,0,0,0) 80%);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="auth-container p-3 position-relative">
+    <a href="index.html" class="btn btn-outline-premium btn-sm position-absolute top-0 start-0 m-4 d-flex align-items-center gap-2">
+      <i class="fas fa-arrow-left"></i> Back to Home
+    </a>
+    <div class="glass-panel p-4 p-md-5 w-100" style="max-width: 450px;">
+      <div class="text-center mb-4">
+        <a href="index.html" class="d-flex justify-content-center align-items-center gap-2 mb-3">
+          <i class="fas fa-shield-alt fa-2x"></i>
+          <span class="h3 fw-extrabold mb-0">Grievance Hub</span>
+        </a>
+        <h4 class="fw-bold">Welcome Back</h4>
+        <p class="text-secondary small">Access your role-based redressal workspace</p>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form">
+        <div class="mb-3">
+          <label class="form-label small fw-bold">Email Address</label>
+          <input type="email" id="email" class="form-control form-control-premium w-100" required placeholder="name@grievance.gov">
+        </div>
+        
+        <div class="mb-3">
+          <div class="d-flex justify-content-between">
+            <label class="form-label small fw-bold">Password</label>
+            <a href="#" class="small text-secondary" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">Forgot Password?</a>
+          </div>
+          <input type="password" id="password" class="form-control form-control-premium w-100" required placeholder="Enter password">
+        </div>
+
+        <div class="mb-4 form-check">
+          <input type="checkbox" class="form-check-input" id="rememberMe">
+          <label class="form-check-label small text-secondary" for="rememberMe">Remember my login</label>
+        </div>
+
+        <button type="submit" class="btn btn-premium w-100 py-2.5 mb-3">
+          <i class="fas fa-sign-in-alt me-2"></i>Sign In
+        </button>
+      </form>
+
+      <div class="text-center">
+        <p class="small text-secondary mb-0">New to the portal? <a href="/register.html" class="fw-bold">Create an account</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Forgot Password / OTP Modal -->
+  <div class="modal fade" id="forgotPasswordModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content glass-panel p-4" style="border: 1px solid var(--border-color);">
+        <div class="modal-header border-0 p-0 mb-3">
+          <h5 class="modal-title fw-bold"><i class="fas fa-key me-2"></i>Reset Password</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        
+        <!-- Step 1: Request OTP -->
+        <div id="otp-step-1">
+          <p class="text-secondary small mb-3">Enter your registered email below, and we will send you a 6-digit verification code to reset your password.</p>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Email Address</label>
+            <input type="email" id="reset-email" class="form-control form-control-premium w-100" placeholder="citizen@gmail.com">
+          </div>
+          <button onclick="requestResetOTP()" class="btn btn-premium w-100">Send Reset Code</button>
+        </div>
+
+        <!-- Step 2: Input OTP & New Password -->
+        <div id="otp-step-2" class="d-none">
+          <p class="text-secondary small mb-3">We have sent a code to your email. Enter it below along with your new password.</p>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Verification Code</label>
+            <input type="text" id="reset-otp" class="form-control form-control-premium w-100" placeholder="6-digit OTP">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">New Password</label>
+            <input type="password" id="reset-new-password" class="form-control form-control-premium w-100" placeholder="New secure password">
+          </div>
+          <button onclick="verifyResetOTP()" class="btn btn-premium w-100">Update Password</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+</body>
+</html>

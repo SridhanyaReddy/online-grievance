@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Citizen Dashboard - Grievance Hub</title>
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+
+  <div class="dashboard-wrapper">
+    <aside id="sidebar-container"></aside>
+
+    <main class="dashboard-main">
+      <header class="dashboard-header">
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn btn-outline-premium border-0 p-2" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+          <h4 class="fw-bold mb-0">Citizen Service Desk</h4>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <button id="theme-toggle" class="btn btn-outline-premium p-2 border-0"></button>
+          <span class="badge bg-primary px-3 py-2">CITIZEN PORTAL</span>
+        </div>
+      </header>
+
+      <div class="dashboard-content">
+        <!-- Dashboard Hero Quick Action Card -->
+        <div class="glass-panel p-4 p-md-5 mb-4 text-center position-relative overflow-hidden" 
+             style="background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);">
+          <h3 class="fw-extrabold mb-2">Have a Public Utility Concern?</h3>
+          <p class="text-secondary mb-4">File a grievance directly with our automated AI categorization routing system.</p>
+          <a href="/complaints.html?action=raise" class="btn btn-premium btn-lg">
+            <i class="fas fa-edit me-2"></i>File New Grievance
+          </a>
+        </div>
+
+        <!-- Top Metrics Cards -->
+        <div class="stats-grid">
+          <div class="metric-card glass-panel">
+            <div class="metric-info">
+              <h3 id="stat-total">0</h3>
+              <p>My Grievances</p>
+            </div>
+            <div class="metric-icon-box bg-info-glow"><i class="fas fa-folder-open"></i></div>
+          </div>
+          <div class="metric-card glass-panel">
+            <div class="metric-info">
+              <h3 id="stat-pending">0</h3>
+              <p>Pending Resolve</p>
+            </div>
+            <div class="metric-icon-box bg-warning-glow"><i class="fas fa-clock"></i></div>
+          </div>
+          <div class="metric-card glass-panel">
+            <div class="metric-info">
+              <h3 id="stat-resolved">0</h3>
+              <p>Resolved Claims</p>
+            </div>
+            <div class="metric-icon-box bg-success-glow"><i class="fas fa-check-double"></i></div>
+          </div>
+        </div>
+
+        <div class="row g-4">
+          <!-- Active complaints list -->
+          <div class="col-lg-8">
+            <div class="glass-panel p-4 h-100">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">My Recent Filings</h5>
+                <a href="/complaints.html" class="btn btn-sm btn-outline-premium">View All</a>
+              </div>
+              <div class="table-responsive">
+                <table class="premium-table">
+                  <thead>
+                    <tr>
+                      <th>Grievance ID</th>
+                      <th>Category</th>
+                      <th>Priority</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="my-cases-tbody">
+                    <!-- Populated dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Announcements Board -->
+          <div class="col-lg-4">
+            <div class="glass-panel p-4 h-100">
+              <h5 class="fw-bold mb-3"><i class="fas fa-bullhorn me-2 text-primary"></i>Bulletin Board</h5>
+              <div class="list-group d-flex flex-column gap-2" id="announcements-container">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/api.js"></script>
+  
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+    }
+
+    async function loadDashboard() {
+      try {
+        const res = await apiRequest('/reports/dashboard-stats');
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('stat-total').textContent = data.data.complaints.total;
+          document.getElementById('stat-pending').textContent = data.data.complaints.pending;
+          document.getElementById('stat-resolved').textContent = data.data.complaints.resolved;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function loadMyRecentCases() {
+      try {
+        const res = await apiRequest('/complaints');
+        const data = await res.json();
+        if (data.success) {
+          const tbody = document.getElementById('my-cases-tbody');
+          tbody.innerHTML = '';
+
+          if (data.data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-secondary py-3">You have not logged any grievances yet.</td></tr>';
+            return;
+          }
+
+          data.data.slice(0, 5).forEach(c => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td><strong class="text-primary">${c.complaintNumber}</strong></td>
+              <td>${c.category}</td>
+              <td><span class="badge bg-secondary">${c.priority.toUpperCase()}</span></td>
+              <td><span class="badge-status status-${c.status.toLowerCase().replace(' ', '-')}">${c.status}</span></td>
+              <td>
+                <a href="/complaints.html" class="btn btn-outline-premium btn-sm py-1">Track</a>
+              </td>
+            `;
+            tbody.appendChild(row);
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function loadAnnouncements() {
+      try {
+        const res = await apiRequest('/admin/announcements');
+        const data = await res.json();
+        if (data.success) {
+          const container = document.getElementById('announcements-container');
+          container.innerHTML = '';
+
+          if (data.data.length === 0) {
+            container.innerHTML = '<p class="small text-secondary py-3 text-center">No announcements posted today.</p>';
+            return;
+          }
+
+          data.data.slice(0, 3).forEach(ann => {
+            const div = document.createElement('div');
+            div.className = 'list-group-item glass-card py-2 px-3';
+            div.innerHTML = `
+              <div class="fw-bold small text-primary mb-1">${ann.title}</div>
+              <p class="small text-secondary mb-0" style="font-size:0.75rem;">${ann.content}</p>
+            `;
+            container.appendChild(div);
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAuth(['citizen']);
+      loadDashboard();
+      loadMyRecentCases();
+      loadAnnouncements();
+    });
+  </script>
+</body>
+</html>

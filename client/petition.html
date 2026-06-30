@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Petitions - Grievance Hub</title>
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+
+  <div class="dashboard-wrapper">
+    <!-- Sidebar Container -->
+    <aside id="sidebar-container"></aside>
+
+    <!-- Main Workspace -->
+    <main class="dashboard-main">
+      <header class="dashboard-header">
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn btn-outline-premium border-0 p-2" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+          <h4 class="fw-bold mb-0">Petitions Feed</h4>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <button id="theme-toggle" class="btn btn-outline-premium p-2 border-0"></button>
+          <span class="badge bg-primary px-3 py-2" id="role-badge">NGO</span>
+        </div>
+      </header>
+
+      <div class="dashboard-content">
+        <!-- Create Petition Trigger (NGO and Citizen only) -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h5 class="fw-bold mb-0">Active Public Petitions</h5>
+          <button id="btn-create-petition" onclick="togglePetitionForm()" class="btn btn-premium d-none">
+            <i class="fas fa-plus me-2"></i>Create Petition
+          </button>
+        </div>
+
+        <!-- Create Petition Form Block -->
+        <div id="create-petition-section" class="glass-panel p-4 mb-4 d-none">
+          <h5 class="fw-bold mb-3">Create New Petition</h5>
+          <form id="petition-form">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label small fw-bold">Petition Title</label>
+                <input type="text" id="pet-title" class="form-control form-control-premium w-100" required placeholder="e.g. Upgrade Streetlights in Sector B">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label small fw-bold">Target Signatures</label>
+                <input type="number" id="pet-target" class="form-control form-control-premium w-100" required value="100" min="10">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label small fw-bold">Concerned Department</label>
+                <select id="pet-department" class="form-select form-control-premium w-100" required></select>
+              </div>
+              <div class="col-12">
+                <label class="form-label small fw-bold">Detailed Petition Text</label>
+                <textarea id="pet-description" class="form-control form-control-premium w-100" rows="4" required placeholder="Describe the public concern and proposed resolution..."></textarea>
+              </div>
+              <div class="col-12 text-end">
+                <button type="button" onclick="togglePetitionForm()" class="btn btn-outline-premium me-2">Cancel</button>
+                <button type="submit" class="btn btn-premium">Launch Petition</button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Petitions Grid -->
+        <div class="row g-4" id="petitions-grid">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/api.js"></script>
+  
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+    }
+
+    function togglePetitionForm() {
+      const form = document.getElementById('create-petition-section');
+      form.classList.toggle('d-none');
+    }
+
+    async function loadDepartments() {
+      try {
+        const res = await apiRequest('/departments');
+        const data = await res.json();
+        if (data.success) {
+          const select = document.getElementById('pet-department');
+          data.data.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d._id;
+            opt.textContent = d.name;
+            select.appendChild(opt);
+          });
+        }
+      } catch (err) {
+        console.error('Error departments:', err);
+      }
+    }
+
+    async function loadPetitions() {
+      try {
+        const res = await apiRequest('/petitions');
+        const data = await res.json();
+        if (data.success) {
+          renderPetitions(data.data);
+        }
+      } catch (err) {
+        showToast('Error fetching petitions', 'error');
+      }
+    }
+
+    function renderPetitions(list) {
+      const grid = document.getElementById('petitions-grid');
+      grid.innerHTML = '';
+
+      if (list.length === 0) {
+        grid.innerHTML = '<div class="col-12 text-center text-secondary py-5">No petitions launched yet. Be the first!</div>';
+        return;
+      }
+
+      const currentUser = getUser();
+
+      list.forEach(p => {
+        const progress = Math.min((p.votes.length / p.targetVotes) * 100, 100).toFixed(0);
+        const hasSigned = p.votes.includes(currentUser.id);
+        const col = document.createElement('div');
+        col.className = 'col-lg-6';
+        
+        col.innerHTML = `
+          <div class="glass-card h-100 d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h5 class="fw-bold text-primary mb-0">${p.title}</h5>
+              <span class="badge ${p.status === 'Forwarded' ? 'bg-success' : 'bg-primary'}">${p.status.toUpperCase()}</span>
+            </div>
+            
+            <p class="small text-secondary mb-3">${p.description}</p>
+            
+            <div class="mt-auto">
+              <div class="small text-secondary mb-1">Target Department: <strong>${p.department?.name || 'Others'}</strong></div>
+              <div class="small text-secondary mb-2">Signed: <strong>${p.votes.length}</strong> / ${p.targetVotes} (${progress}%)</div>
+              
+              <div class="progress mb-3" style="height: 6px;">
+                <div class="progress-bar bg-success" style="width: ${progress}%"></div>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="small text-secondary">Started by: ${p.creator?.name || 'Citizen'}</span>
+                
+                ${hasSigned 
+                  ? '<span class="badge bg-success-glow text-success"><i class="fas fa-check me-1"></i>Signed</span>' 
+                  : `<button onclick="signPetition('${p._id}')" class="btn btn-premium btn-sm py-1.5 px-3">Sign Petition</button>`
+                }
+              </div>
+            </div>
+          </div>
+        `;
+        grid.appendChild(col);
+      });
+    }
+
+    async function signPetition(id) {
+      try {
+        const res = await apiRequest(`/petitions/${id}/vote`, {
+          method: 'POST'
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Thank you for signing the petition!', 'success');
+          loadPetitions();
+        } else {
+          showToast(data.message, 'error');
+        }
+      } catch (err) {
+        showToast('Signing failed.', 'error');
+      }
+    }
+
+    const petForm = document.getElementById('petition-form');
+    if (petForm) {
+      petForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const title = document.getElementById('pet-title').value;
+        const description = document.getElementById('pet-description').value;
+        const targetVotes = document.getElementById('pet-target').value;
+        const departmentId = document.getElementById('pet-department').value;
+
+        try {
+          const res = await apiRequest('/petitions', {
+            method: 'POST',
+            body: { title, description, targetVotes, departmentId }
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast('Petition launched successfully!', 'success');
+            petForm.reset();
+            togglePetitionForm();
+            loadPetitions();
+          }
+        } catch (err) {
+          showToast('Launch failed.', 'error');
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAuth();
+      const user = getUser();
+      document.getElementById('role-badge').textContent = user.role.toUpperCase();
+
+      if (user.role === 'ngo' || user.role === 'citizen') {
+        document.getElementById('btn-create-petition').classList.remove('d-none');
+        loadDepartments();
+      }
+
+      loadPetitions();
+    });
+  </script>
+</body>
+</html>

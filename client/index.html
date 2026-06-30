@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>National Grievance Redressal Portal</title>
+  
+  <!-- CSS Library Files -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  
+  <!-- Custom CSS Files -->
+  <link rel="stylesheet" href="/css/style.css">
+  
+  <style>
+    .hero-section {
+      position: relative;
+      background: radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.08) 0%, rgba(139, 92, 246, 0.03) 90%);
+      padding: 120px 0 80px;
+      overflow: hidden;
+    }
+    
+    .hero-glow {
+      position: absolute;
+      top: -10%;
+      right: -10%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, rgba(0,0,0,0) 70%);
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .nav-premium {
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      background: rgba(255, 255, 255, 0.85);
+      border-bottom: 1px solid var(--border-color);
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 999;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+      transition: var(--transition-smooth);
+    }
+
+    [data-theme="dark"] .nav-premium {
+      background: rgba(3, 7, 18, 0.85);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Brand Logo / Text styling */
+    .brand-logo {
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .navbar-brand:hover .brand-logo {
+      transform: rotate(15deg) scale(1.15);
+    }
+    .brand-text {
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 800;
+      transition: var(--transition-smooth);
+    }
+    [data-theme="dark"] .brand-text {
+      background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Elegant Nav Link Hover effect */
+    .nav-premium .nav-link {
+      font-weight: 600;
+      color: var(--text-secondary);
+      padding: 0.5rem 1.25rem !important;
+      position: relative;
+      transition: var(--transition-smooth);
+    }
+    .nav-premium .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 15%;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      transition: var(--transition-smooth);
+      border-radius: 2px;
+    }
+    .nav-premium .nav-link:hover {
+      color: var(--accent-secondary) !important;
+    }
+    .nav-premium .nav-link:hover::after {
+      width: 70%;
+    }
+    
+    .process-step {
+      text-align: center;
+      position: relative;
+    }
+    
+    .process-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.75rem;
+      margin: 0 auto 1.5rem;
+      background: var(--bg-secondary);
+      border: 2px dashed var(--accent-secondary);
+      color: var(--accent-secondary);
+      transition: var(--transition-smooth);
+    }
+    
+    .process-step:hover .process-icon {
+      transform: scale(1.1);
+      background: var(--accent-secondary);
+      color: #ffffff;
+      border-color: transparent;
+    }
+
+    .process-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 40px;
+      left: 60%;
+      width: 80%;
+      height: 2px;
+      border-top: 2px dashed var(--border-color);
+      z-index: -1;
+    }
+    
+    @media (max-width: 768px) {
+      .process-step:not(:last-child)::after { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="nav-premium navbar navbar-expand-lg py-3">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center gap-2 fw-extrabold" href="index.html" style="font-size: 1.4rem;">
+        <i class="fas fa-shield-alt text-primary brand-logo"></i>
+        <span class="brand-text">Grievance Portal</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      
+      <div class="collapse navbar-collapse" id="navbarContent">
+        <ul class="navbar-nav ms-auto align-items-center gap-3">
+          <li class="nav-item"><a class="nav-link" href="#how-it-works">How It Works</a></li>
+          <li class="nav-item"><a class="nav-link" href="#departments">Departments</a></li>
+          <li class="nav-item"><a class="nav-link" href="#faq">FAQs</a></li>
+          <li class="nav-item">
+            <button id="theme-toggle" class="btn btn-outline-premium p-2 border-0">
+              <i class="fas fa-moon"></i>
+            </button>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-outline-premium" href="/login.html">Sign In</a>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-premium" href="/register.html">Get Started</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-glow"></div>
+    <div class="container">
+      <div class="row align-items-center min-vh-75 mt-4">
+        <div class="col-lg-6 mb-5 mb-lg-0" data-aos="fade-right">
+          <span class="badge status-verified mb-3">Official Redressal Portal</span>
+          <h1 class="display-4 fw-extrabold mb-4" style="line-height: 1.15;">
+            Empowering Citizens.<br>
+            <span class="text-primary">Resolving Grievances.</span>
+          </h1>
+          <p class="lead text-secondary mb-4">
+            A secure, automated, role-guided portal designed to escalate and redresses public service complaints with complete tracking transparency.
+          </p>
+          <div class="d-flex flex-wrap gap-3">
+            <a href="/register.html" class="btn btn-premium btn-lg">File a Complaint</a>
+            <a href="#how-it-works" class="btn btn-outline-premium btn-lg">Learn More</a>
+          </div>
+        </div>
+        
+        <div class="col-lg-6" data-aos="fade-left">
+          <div class="glass-panel p-4 p-md-5 text-center position-relative">
+            <div class="hero-decor" style="font-size: 5rem; opacity: 0.15; position: absolute; top: 10px; right: 20px;">
+              <i class="fas fa-landmark"></i>
+            </div>
+            <h3 class="fw-bold mb-4">Live Counters</h3>
+            
+            <div class="row g-4">
+              <div class="col-6">
+                <div class="p-3 border rounded">
+                  <h2 class="text-primary fw-extrabold">12.5k</h2>
+                  <p class="text-secondary small mb-0">Complaints Redressed</p>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="p-3 border rounded">
+                  <h2 class="text-success fw-extrabold">98.4%</h2>
+                  <p class="text-secondary small mb-0">Satisfaction Rate</p>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="p-3 border rounded">
+                  <h2 class="text-warning fw-extrabold">&lt; 48h</h2>
+                  <p class="text-secondary small mb-0">Average Redressal</p>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="p-3 border rounded">
+                  <h2 class="text-info fw-extrabold">24/7</h2>
+                  <p class="text-secondary small mb-0">Support Response</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section id="how-it-works" class="py-5 bg-secondary-theme">
+    <div class="container py-5">
+      <div class="text-center mb-5" data-aos="fade-up">
+        <h2 class="fw-extrabold">How Grievance Hub Works</h2>
+        <p class="text-secondary">Transparent, step-by-step redressing workflow for public peace of mind.</p>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-md-3 col-sm-6" data-aos="fade-up" data-aos-delay="100">
+          <div class="process-step">
+            <div class="process-icon"><i class="fas fa-file-signature"></i></div>
+            <h5 class="fw-bold">1. File Complaint</h5>
+            <p class="text-secondary small">Submit details, pin maps, and attach site images.</p>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6" data-aos="fade-up" data-aos-delay="200">
+          <div class="process-step">
+            <div class="process-icon"><i class="fas fa-clipboard-check"></i></div>
+            <h5 class="fw-bold">2. verification</h5>
+            <p class="text-secondary small">System sanitizes input and automatically predicts department.</p>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6" data-aos="fade-up" data-aos-delay="300">
+          <div class="process-step">
+            <div class="process-icon"><i class="fas fa-people-carry"></i></div>
+            <h5 class="fw-bold">3. Resolve</h5>
+            <p class="text-secondary small">Managers assign issues to field officers for redressal.</p>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6" data-aos="fade-up" data-aos-delay="400">
+          <div class="process-step">
+            <div class="process-icon"><i class="fas fa-check-double"></i></div>
+            <h5 class="fw-bold">4. Close Case</h5>
+            <p class="text-secondary small">Download receipt and rate redressal efficiency.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Departments Section -->
+  <section id="departments" class="py-5">
+    <div class="container py-5">
+      <div class="text-center mb-5" data-aos="fade-up">
+        <h2 class="fw-extrabold">Departments Under System</h2>
+        <p class="text-secondary">Select an area of concern to log your query.</p>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-lg-3 col-md-4 col-sm-6" data-aos="fade-up">
+          <div class="glass-card text-center">
+            <i class="fas fa-road text-primary fa-2x mb-3"></i>
+            <h5>Roads</h5>
+            <p class="text-secondary small">Potholes, broken tar, and sidewalk damage.</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6" data-aos="fade-up" data-aos-delay="100">
+          <div class="glass-card text-center">
+            <i class="fas fa-faucet text-primary fa-2x mb-3"></i>
+            <h5>Water Supply</h5>
+            <p class="text-secondary small">Main leakage, pipe contaminate, and shortages.</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6" data-aos="fade-up" data-aos-delay="200">
+          <div class="glass-card text-center">
+            <i class="fas fa-lightbulb text-primary fa-2x mb-3"></i>
+            <h5>Street Lights</h5>
+            <p class="text-secondary small">Faulty bulb changes and dark community spots.</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6" data-aos="fade-up" data-aos-delay="300">
+          <div class="glass-card text-center">
+            <i class="fas fa-trash-alt text-primary fa-2x mb-3"></i>
+            <h5>Garbage</h5>
+            <p class="text-secondary small">Overflowing skips and public litter bins.</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6" data-aos="fade-up" data-aos-delay="400">
+          <div class="glass-card text-center">
+            <i class="fas fa-water text-primary fa-2x mb-3"></i>
+            <h5>Drainage & Sewers</h5>
+            <p class="text-secondary small">Clogged storm gutters, open manholes, and waste overflows.</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6" data-aos="fade-up" data-aos-delay="500">
+          <div class="glass-card text-center">
+            <i class="fas fa-bolt text-primary fa-2x mb-3"></i>
+            <h5>Electricity</h5>
+            <p class="text-secondary small">Power cut issues, hanging live wires, and transformer failures.</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6" data-aos="fade-up" data-aos-delay="600">
+          <div class="glass-card text-center">
+            <i class="fas fa-shield-halved text-primary fa-2x mb-3"></i>
+            <h5>Public Safety</h5>
+            <p class="text-secondary small">Community safety issues, dark alley safety, and patrol alerts.</p>
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6" data-aos="fade-up" data-aos-delay="700">
+          <div class="glass-card text-center">
+            <i class="fas fa-heart-pulse text-primary fa-2x mb-3"></i>
+            <h5>Health & Sanitation</h5>
+            <p class="text-secondary small">Pest control, mosquito fogging, and stagnant water cleanups.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section id="faq" class="py-5 bg-secondary-theme">
+    <div class="container py-5">
+      <div class="text-center mb-5" data-aos="fade-up">
+        <h2 class="fw-extrabold">Frequently Asked Questions</h2>
+        <p class="text-secondary">Have questions? We have answers.</p>
+      </div>
+
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="accordion" id="faqAccordion">
+            <div class="accordion-item glass-panel mb-3">
+              <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1">
+                  How can I track my submitted grievance?
+                </button>
+              </h2>
+              <div id="collapse1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                <div class="accordion-body text-secondary">
+                  Upon submission, you receive a unique tracking number (e.g. GRV-XXXX) and a base64 QR Code. Scan the code or log in to view real-time assignments and comments.
+                </div>
+              </div>
+            </div>
+            
+            <div class="accordion-item glass-panel mb-3">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2">
+                  What is the role of NGOs in this system?
+                </button>
+              </h2>
+              <div id="collapse2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body text-secondary">
+                  NGOs can create public awareness campaigns, review unresolved complaints, support petitions, and launch forums to resolve community scale problems.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer-premium">
+    <div class="container">
+      <div class="row g-4">
+        <!-- Brand / About Column -->
+        <div class="col-lg-4 col-md-6">
+          <a class="d-flex align-items-center gap-2 fw-extrabold mb-3" href="index.html" style="font-size: 1.3rem;">
+            <i class="fas fa-shield-alt text-primary brand-logo"></i>
+            <span class="brand-text">Grievance Hub</span>
+          </a>
+          <p class="text-secondary small">
+            Official Public Utility Grievance Redressal Portal. A secure, automated system designed to escalate and resolve community grievances with complete transparency.
+          </p>
+          <div class="d-flex gap-2 mt-3">
+            <span class="footer-badge"><i class="fas fa-shield-halved"></i> ISO 27001</span>
+            <span class="footer-badge"><i class="fas fa-lock"></i> SSL Secured</span>
+          </div>
+        </div>
+
+        <!-- Quick Links Column -->
+        <div class="col-lg-2 col-md-6 col-6">
+          <h6 class="footer-title">Portal Links</h6>
+          <ul class="footer-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#departments">Departments</a></li>
+            <li><a href="#faq">FAQs</a></li>
+          </ul>
+        </div>
+
+        <!-- Citizens & NGOs Column -->
+        <div class="col-lg-2 col-md-6 col-6">
+          <h6 class="footer-title">Citizens & NGOs</h6>
+          <ul class="footer-links">
+            <li><a href="register.html">File Complaint</a></li>
+            <li><a href="login.html">Support Petition</a></li>
+            <li><a href="login.html">Discussion Forums</a></li>
+            <li><a href="register.html">NGO Enrollment</a></li>
+          </ul>
+        </div>
+
+        <!-- Contact Support Column -->
+        <div class="col-lg-4 col-md-6">
+          <h6 class="footer-title">Contact & Support</h6>
+          <ul class="footer-links text-secondary">
+            <li class="d-flex align-items-center gap-2 mb-2"><i class="fas fa-envelope text-primary"></i><a href="mailto:support@grievance.gov">support@grievance.gov</a></li>
+            <li class="d-flex align-items-center gap-2 mb-2"><i class="fas fa-phone text-primary"></i><span>Toll Free: 1800-11-2233</span></li>
+            <li class="d-flex align-items-center gap-2 mb-2"><i class="fas fa-clock text-primary"></i><span>Response: 24/7 Helpline</span></li>
+            <li class="mt-3">
+              <span class="footer-badge">
+                <span class="status-dot me-1"></span> System Status: <span class="text-success fw-bold ms-1">Operational</span>
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Copyright Bottom Bar -->
+      <div class="footer-bottom">
+        <p class="small text-secondary mb-0">
+          &copy; 2026 Sridhanya Reddy, 24951A12A8. All rights reserved.
+        </p>
+        <p class="small text-tertiary mb-0">
+          Securely managed by Digital Informatics & Services Operations.
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Script Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script src="/js/api.js"></script>
+  
+  <script>
+    AOS.init({ duration: 800, once: true });
+  </script>
+</body>
+</html>
